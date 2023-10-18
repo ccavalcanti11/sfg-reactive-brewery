@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
 //import org.hibernate.annotations.CreationTimestamp;
 //import org.hibernate.annotations.GenericGenerator;
 //import org.hibernate.annotations.Type;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 //import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -30,7 +32,9 @@ public class Beer {
 //    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
 //    @Type(type="org.hibernate.type.UUIDCharType")
 //    @Column(length = 36, columnDefinition = "varchar", updatable = false, nullable = false)
-    private UUID id;
+
+    @Id
+    private Integer id;
 
 //    @Version
     private Long version;
@@ -44,8 +48,8 @@ public class Beer {
 
 //    @CreationTimestamp
 //    @Column(updatable = false)
-    private Timestamp createdDate;
+    private LocalDateTime createdDate;
 
 //    @UpdateTimestamp
-    private Timestamp lastModifiedDate;
+    private LocalDateTime lastModifiedDate;
 }
