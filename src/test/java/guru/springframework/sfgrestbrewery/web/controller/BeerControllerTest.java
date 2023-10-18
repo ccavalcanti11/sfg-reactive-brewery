@@ -54,7 +54,7 @@ class BeerControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(BeerDto.class)
-                .value(beerDto -> beerDto.getBeerName(), equalTo(validBeer.getBeerName()));
+                .value(BeerDto::getBeerName, equalTo(validBeer.getBeerName()));
     }
 
     @Test
@@ -67,7 +67,7 @@ class BeerControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(BeerDto.class)
-                .value(beerDto -> beerDto.getUpc(), equalTo(validBeer.getUpc()));
+                .value(BeerDto::getUpc, equalTo(validBeer.getUpc()));
     }
 
     @Test
