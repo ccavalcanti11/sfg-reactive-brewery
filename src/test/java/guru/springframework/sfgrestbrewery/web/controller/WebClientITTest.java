@@ -7,13 +7,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.http.client.HttpClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -95,5 +100,53 @@ public class WebClientITTest {
         });
 
         countDownLatch.await();
+    }
+
+    @Test
+    void testSaveBeer() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        BeerDto beerDto = BeerDto.builder()
+                .beerName("JTs Beer")
+                .upc("1233455")
+                .beerStyle("PALE_ALE")
+                .price(new BigDecimal("8.99"))
+                .build();
+
+        Mono<ResponseEntity<Void>> beerResponseMono = webClient.post().uri("/api/v1/beer")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(beerDto))
+                .retrieve()
+                .toBodilessEntity();
+
+        beerResponseMono.publishOn(Schedulers.parallel()).subscribe(responseEntity -> {
+            assertThat(responseEntity.getStatusCode().is2xxSuccessful());
+            countDownLatch.countDown();
+        });
+
+        countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+        assertThat(countDownLatch.getCount()).isEqualTo(0);
+    }
+
+    @Test
+    void testSaveBeerBadRequest() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        BeerDto beerDto = BeerDto.builder()
+                .price(new BigDecimal("8.99"))
+                .build();
+
+        Mono<ResponseEntity<Void>> beerResponseMono = webClient.post().uri("/api/v1/beer")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(beerDto))
+                .retrieve()
+                .toBodilessEntity();
+
+        beerResponseMono.publishOn(Schedulers.parallel()).doOnError(throwable -> {
+            countDownLatch.countDown();
+        }).subscribe(responseEntity -> {});
+
+        countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+        assertThat(countDownLatch.getCount()).isEqualTo(0);
     }
 }
