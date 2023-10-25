@@ -33,7 +33,6 @@ import static org.springframework.data.relational.core.query.Query.query;
 public class BeerServiceImpl implements BeerService {
     private final BeerRepository beerRepository;
     private final BeerMapper beerMapper;
-
     private final R2dbcEntityTemplate template;
 
     @Cacheable(cacheNames = "beerListCache", condition = "#showInventoryOnHand == false ")
@@ -41,7 +40,7 @@ public class BeerServiceImpl implements BeerService {
     public Mono<BeerPagedList> listBeers(String beerName, BeerStyleEnum beerStyle, PageRequest pageRequest, Boolean showInventoryOnHand) {
         Query query = null;
 
-        if(!StringUtils.isEmpty(beerName) && !StringUtils.isEmpty(beerStyle)) {
+        if (!StringUtils.isEmpty(beerName) && !StringUtils.isEmpty(beerStyle)) {
             //search both
             query = query(where("beerName").is(beerName).and("beerStyle").is(beerStyle));
         } else if (!StringUtils.isEmpty(beerName) && StringUtils.isEmpty(beerStyle)) {
@@ -59,9 +58,12 @@ public class BeerServiceImpl implements BeerService {
                 .all()
                 .map(beerMapper::beerToBeerDto)
                 .collect(Collectors.toList())
-                .map(beers -> new BeerPagedList(beers, PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize()), beers.size()));
-
-
+                .map(beers -> {
+                    return new BeerPagedList(beers, PageRequest.of(
+                            pageRequest.getPageNumber(),
+                            pageRequest.getPageSize()),
+                            beers.size());
+                });
     }
 
     @Cacheable(cacheNames = "beerCache", key = "#beerId", condition = "#showInventoryOnHand == false ")

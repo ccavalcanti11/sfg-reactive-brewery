@@ -21,12 +21,11 @@ public class SfgReactiveBreweryApplication {
 	Resource resource;
 
 	@Bean
-	ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory){
+	ConnectionFactoryInitializer initializer (ConnectionFactory connectionFactory){
 		ConnectionFactoryInitializer initializer = new ConnectionFactoryInitializer();
 		initializer.setConnectionFactory(connectionFactory);
 		initializer.setDatabasePopulator(new ResourceDatabasePopulator(resource));
 
 		return initializer;
 	}
-
 }

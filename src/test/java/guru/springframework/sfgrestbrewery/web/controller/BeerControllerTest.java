@@ -14,9 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,9 +70,10 @@ class BeerControllerTest {
     }
 
     @Test
-    void getListBeers() {
-        List<BeerDto> beerList = Collections.singletonList(validBeer);
-        BeerPagedList beerPagedList = new BeerPagedList(beerList, PageRequest.of(1, 1), beerList.size());
+    void listBeers() {
+        List<BeerDto> beerList = Arrays.asList(validBeer);
+
+        BeerPagedList beerPagedList = new BeerPagedList(beerList, PageRequest.of(1,1), beerList.size());
 
         given(beerService.listBeers(any(), any(), any(), any())).willReturn(Mono.just(beerPagedList));
 
