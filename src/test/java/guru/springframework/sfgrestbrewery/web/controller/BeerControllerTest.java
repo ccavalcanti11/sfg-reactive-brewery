@@ -74,7 +74,7 @@ class BeerControllerTest {
         List<BeerDto> beerList = Collections.singletonList(validBeer);
         BeerPagedList beerPagedList = new BeerPagedList(beerList, PageRequest.of(1, 1), beerList.size());
 
-        given(beerService.listBeers(any(), any(), any(), any())).willReturn(beerPagedList);
+        given(beerService.listBeers(any(), any(), any(), any())).willReturn(Mono.just(beerPagedList));
 
         webTestClient.get()
                 .uri("/api/v1/beer")
