@@ -1,11 +1,13 @@
 package guru.springframework.sfgrestbrewery.web.controller;
 
 import guru.springframework.sfgrestbrewery.bootstrap.BeerLoader;
+import guru.springframework.sfgrestbrewery.domain.Beer;
 import guru.springframework.sfgrestbrewery.web.model.BeerDto;
 import guru.springframework.sfgrestbrewery.web.model.BeerPagedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -146,6 +148,49 @@ public class WebClientITTest {
             countDownLatch.countDown();
         }).subscribe(responseEntity -> {});
 
+        countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+        assertThat(countDownLatch.getCount()).isEqualTo(0);
+    }
+
+    @Test
+    void testUpdateBeer() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(3);
+
+        webClient.get().uri("/api/v1/beer/")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(BeerPagedList.class)
+                .publishOn(Schedulers.single())
+                .subscribe(pagedList -> {
+                    countDownLatch.countDown();
+
+                    //get existing beer
+                    BeerDto beerDto = pagedList.getContent().get(0);
+
+                    BeerDto updatedPayload = BeerDto.builder().beerName("JTsUpdate")
+                            .beerStyle(beerDto.getBeerStyle())
+                            .upc(beerDto.getUpc())
+                            .price(beerDto.getPrice())
+                            .build();
+
+                    //update existing beer
+                    webClient.put().uri("/api/v1/beer/" + beerDto.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(BodyInserters.fromValue(updatedPayload))
+                            .retrieve()
+                            .toBodilessEntity()
+                            .flatMap(responseEntity -> {
+                                //get and verify update
+                                countDownLatch.countDown();
+                                return  webClient.get().uri("/api/v1/beer/" + beerDto.getId())
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .retrieve()
+                                        .bodyToMono(BeerDto.class);
+                            }).subscribe(savedDto -> {
+                                assertThat(savedDto.getBeerName()).isEqualTo("JTsUpdate");
+                                countDownLatch.countDown();
+                            });
+                });
         countDownLatch.await(1000, TimeUnit.MILLISECONDS);
         assertThat(countDownLatch.getCount()).isEqualTo(0);
     }
